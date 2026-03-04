@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Kos Bu Siti - Pembayaran</title>
+  <link rel="stylesheet" href="./style.css"/>
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <div class="topbar">
+    <div class="nav">
+      <div class="brand">🏠 Kos Bu Siti</div>
+      <div class="menu">
+        <a href="index.html">Dashboard</a>
+        <a href="payments.html">Pembayaran</a>
+        <a href="rekap.html">Rekap</a>
+        <a href="history.html">Riwayat</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container grid" style="gap:14px">
+    <div class="card">
+      <h2>Pembayaran</h2>
+      <div class="muted">Input: penyewa, jumlah bulan, tanggal bayar. Periode ditentukan otomatis (tanpa input manual).</div>
+    </div>
+
+    <div class="card">
+      <div class="grid grid-2">
+        <div class="field">
+          <label>Pilih Penyewa</label>
+          <select id="tenantSelect"></select>
+        </div>
+        <div class="field">
+          <label>Tanggal Bayar</label>
+          <input id="payDate" type="date"/>
+        </div>
+        <div class="field">
+          <label>Jumlah Bulan Dibayar</label>
+          <input id="months" type="number" min="1" value="1"/>
+        </div>
+        <div class="field">
+          <label>Preview Periode</label>
+          <input id="preview" type="text" readonly/>
+        </div>
+      </div>
+
+      <hr/>
+
+      <div class="row">
+        <div class="muted" id="hint">—</div>
+        <div class="spacer"></div>
+        <button id="btnSave" class="ok">Simpan Pembayaran</button>
+      </div>
+
+      <div id="after" style="display:none; margin-top:12px" class="notice"></div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/payments.js"></script>
+</body>
+</html>

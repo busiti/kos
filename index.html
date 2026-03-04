@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Kos Bu Siti - Dashboard</title>
+  <link rel="stylesheet" href="./style.css"/>
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <div class="topbar">
+    <div class="nav">
+      <div class="brand">🏠 Kos Bu Siti</div>
+      <div class="menu">
+        <a href="index.html">Dashboard</a>
+        <a href="payments.html">Pembayaran</a>
+        <a href="rekap.html">Rekap</a>
+        <a href="history.html">Riwayat</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container grid" style="gap:14px">
+    <div class="card">
+      <div class="row">
+        <div>
+          <h2>Dashboard</h2>
+          <div class="muted">Ringkasan status semua kamar + pengingat (H-3, H-1, H+2) & tombol WA manual.</div>
+        </div>
+        <div class="spacer"></div>
+        <button id="btnReload" class="ghost">Muat Ulang</button>
+      </div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <h3>H-3</h3>
+        <div id="listH3" class="muted">Memuat...</div>
+      </div>
+      <div class="card">
+        <h3>H-1</h3>
+        <div id="listH1" class="muted">Memuat...</div>
+      </div>
+      <div class="card">
+        <h3>H+2</h3>
+        <div id="listH2" class="muted">Memuat...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Status Kamar</h3>
+      <div class="notice" style="margin-bottom:10px">
+        Logika tunggakan: dihitung dari <b>periode_selesai terakhir</b>. Pembayaran selalu menutup periode tertua yang belum lunas.
+      </div>
+      <div style="overflow:auto">
+        <div class="table-wrapper">
+          <table class="table" id="tbl">
+          <thead>
+            <tr>
+              <th>Kamar</th>
+              <th>Penyewa</th>
+              <th>No HP</th>
+              <th>Next Due</th>
+              <th>Status</th>
+              <th>WA</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table></div>
+        
+      </div>
+      <div class="muted" style="margin-top:10px">
+        * Tombol WA hanya membuka WhatsApp (manual), tidak mengirim otomatis.
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/dashboard.js"></script>
+</body>
+</html>

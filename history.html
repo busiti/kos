@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Riwayat Pembayaran</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="nav">
+      <div class="brand">🏠 Kos Bu Siti</div>
+      <div class="menu">
+        <a href="index.html">Dashboard</a>
+        <a href="payments.html">Pembayaran</a>
+        <a href="rekap.html">Rekap</a>
+        <a href="history.html">Riwayat</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2>Riwayat Pembayaran</h2>
+      <div class="muted">Semua transaksi pembayaran kos.</div>
+    </div>
+
+    <div id="notif" style="
+      display:none;
+      margin:10px 0;
+      padding:10px;
+      border-radius:10px;
+      background:#173826;
+      color:white;
+      border:1px solid rgba(255,255,255,.12);
+    "></div>
+
+    <div class="card">
+      <div style="overflow:auto">
+        <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Tanggal Bayar</th>
+              <th>Penyewa</th>
+              <th>Periode</th>
+              <th>Jumlah</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        </div>
+      </div>
+      <div class="muted" style="margin-top:10px">
+        * Jika salah input kamar, ubah “Penyewa” lewat dropdown. Jika salah total, hapus lalu input ulang.
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/history.js"></script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kos Bu Siti - Rekap</title>
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" href="data:,">
+  <style>
+    .table-grid td {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="nav">
+      <div class="brand">🏠 Kos Bu Siti</div>
+      <div class="menu">
+        <a href="index.html">Dashboard</a>
+        <a href="payments.html">Pembayaran</a>
+        <a href="rekap.html">Rekap</a>
+        <a href="history.html">Riwayat</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container grid" style="gap:14px">
+    <div class="card">
+      <div class="row">
+        <div>
+          <h2>Manajemen Penyewa</h2>
+          <div class="muted">
+            Tambah penyewa baru dan kelola data penyewa.
+            Rekap pembayaran tahunan ditampilkan di bawah.
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <button id="btnReload" class="ghost">Muat Ulang</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Tambah Penyewa Baru</h3>
+      <div class="muted">Satu kamar hanya boleh memiliki satu penyewa aktif.</div>
+      <hr />
+      <div class="grid grid-2">
+        <div class="field">
+          <label>Nama</label>
+          <input id="addNama" />
+        </div>
+        <div class="field">
+          <label>No HP</label>
+          <input id="addHp" />
+        </div>
+        <div class="field">
+          <label>Pilih Unit</label>
+          <select id="addUnit"></select>
+        </div>
+        <div class="field">
+          <label>Tanggal Mulai</label>
+          <input id="addMulai" type="date" />
+        </div>
+      </div>
+      <hr />
+      <div class="row">
+        <div class="muted" id="addInfo">—</div>
+        <div class="spacer"></div>
+        <button id="btnAddTenant" class="ok">Tambah Penyewa</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Rekap Pembayaran Tahun Berjalan</h3>
+      <div class="muted">
+        Hijau = sudah dibayar
+        Merah = sudah lewat jatuh tempo
+        Kosong = belum jatuh tempo
+      </div>
+    </div>
+    <div class="card">
+  <h3>Ringkasan Bulan Ini</h3>
+  <div class="summary-grid">
+    <div class="summary-box">
+      <div class="label">Total Kamar</div>
+      <div class="value" id="sumTotal">0</div>
+    </div>
+
+    <div class="summary-box green">
+      <div class="label">Sudah Bayar</div>
+      <div class="value" id="sumPaid">0</div>
+    </div>
+
+    <div class="summary-box red">
+      <div class="label">Belum Bayar</div>
+      <div class="value" id="sumUnpaid">0</div>
+    </div>
+
+    <div class="summary-box">
+      <div class="label">Pemasukan Bulan Ini</div>
+      <div class="value">Rp <span id="sumIncome">0</span></div>
+    </div>
+  </div>
+</div>
+    <div class="card">
+      <div style="overflow:auto">
+        <div class="table-wrapper">
+        <table class="table table-grid" id="tblRekap">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        </div>
+      </div>
+      <div class="muted" style="margin-top:10px">
+        Keterangan tunggakan dihitung dari <b>periode_selesai terakhir</b>. Tidak menampilkan “0”.
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <div class="row">
+        <h3 style="margin:0">Edit Penyewa</h3>
+        <div class="spacer"></div>
+        <button class="ghost" id="btnClose">Tutup</button>
+      </div>
+      <hr />
+      <div class="grid grid-2">
+        <div class="field">
+          <label>Nama</label>
+          <input id="mNama" />
+        </div>
+        <div class="field">
+          <label>No HP</label>
+          <input id="mHp" />
+        </div>
+        <div class="field">
+          <label>Unit</label>
+          <select id="mUnit"></select>
+        </div>
+        <div class="field">
+          <label>Tanggal Mulai</label>
+          <input id="mMulai" type="date" />
+        </div>
+      </div>
+      <hr />
+      <div class="row">
+        <div class="muted" id="mInfo">—</div>
+        <div class="spacer"></div>
+        <button id="btnSaveTenant" class="ok">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/rekap.js"></script>
+</body>
+
+</html>
