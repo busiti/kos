@@ -1,11 +1,8 @@
-// Firebase v9+ (modular) via CDN
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+// Tambahkan import Auth
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-/**
- * ✅ Tempel firebaseConfig milikmu di sini.
- * Firebase setup tidak dijelaskan lagi sesuai permintaan.
- */
 const firebaseConfig = {
   apiKey: "AIzaSyCHEcZw7xuP3MRak8x8tufSmGBNpSyC76I",
   authDomain: "kossangkrah.firebaseapp.com",
@@ -17,3 +14,4 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app); // Export auth agar bisa dipakai di halaman login
