@@ -2,63 +2,66 @@
 <html lang="id">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Riwayat Pembayaran</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kos Bu Siti - Riwayat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="data:,">
-</head>
+  <script type="module">
+    import { auth } from "./js/firebase.js"; // Pastikan path ke firebase.js benar
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-<body>
-  <div class="topbar">
-    <div class="nav">
-      <div class="brand">🏠 Kos Bu Siti</div>
-      <div class="menu">
-        <a href="index.html">Dashboard</a>
-        <a href="payments.html">Pembayaran</a>
-        <a href="rekap.html">Rekap</a>
-        <a href="history.html">Riwayat</a>
+    // Cek status login sebelum halaman ditampilkan sepenuhnya
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // Jika tidak login, langsung lempar ke halaman login
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+</head>
+<body class="bg-[#0b1220] text-[#e8f0ff] font-sans min-h-screen">
+  <nav class="sticky top-0 z-50 bg-[#0b1220]/90 backdrop-blur-md border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+      <div class="font-bold text-lg text-emerald-400">🏠 Kos Bu Siti</div>
+      <div class="flex flex-wrap gap-2">
+        <a href="index.html" class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm hover:bg-white/10 transition">Dashboard</a>
+        <a href="payments.html" class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm hover:bg-white/10 transition">Pembayaran</a>
+        <a href="rekap.html" class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm hover:bg-white/10 transition">Rekap</a>
+        <a href="history.html" class="px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-sm">Riwayat</a>
       </div>
     </div>
-  </div>
+  </nav>
 
-  <div class="container">
-    <div class="card">
-      <h2>Riwayat Pembayaran</h2>
-      <div class="muted">Semua transaksi pembayaran kos.</div>
+  <main class="max-w-6xl mx-auto p-4 space-y-4">
+    <div class="bg-[#111a2e] border border-white/10 rounded-2xl p-6 shadow-lg">
+      <h2 class="text-2xl font-bold">Riwayat Pembayaran</h2>
+      <p class="text-[#8aa0c6] text-sm italic">Semua transaksi pembayaran kos.</p>
     </div>
 
-    <div id="notif" style="
-      display:none;
-      margin:10px 0;
-      padding:10px;
-      border-radius:10px;
-      background:#173826;
-      color:white;
-      border:1px solid rgba(255,255,255,.12);
-    "></div>
+    <div id="notif" style="display:none" class="p-4 rounded-xl bg-emerald-900/40 text-emerald-200 border border-emerald-500/30 shadow-lg text-sm italic"></div>
 
-    <div class="card">
-      <div style="overflow:auto">
-        <div class="table-wrapper">
-        <table class="table">
+    <div class="bg-[#111a2e] border border-white/10 rounded-2xl p-6 shadow-xl overflow-hidden">
+      <div class="overflow-x-auto rounded-xl border border-white/10">
+        <table class="w-full text-sm text-center border-collapse">
           <thead>
-            <tr>
-              <th>Tanggal Bayar</th>
-              <th>Penyewa</th>
-              <th>Periode</th>
-              <th>Jumlah</th>
-              <th>Aksi</th>
+            <tr class="bg-white/5 text-[#8aa0c6] uppercase text-[11px] tracking-widest font-bold">
+              <th class="p-4 border-b border-white/10">Tanggal Bayar</th>
+              <th class="p-4 border-b border-white/10">Penyewa</th>
+              <th class="p-4 border-b border-white/10">Periode</th>
+              <th class="p-4 border-b border-white/10">Jumlah</th>
+              <th class="p-4 border-b border-white/10">Aksi</th>
             </tr>
           </thead>
-          <tbody id="tbody"></tbody>
+          <tbody id="tbody" class="divide-y divide-white/5"></tbody>
         </table>
-        </div>
       </div>
-      <div class="muted" style="margin-top:10px">
-        * Jika salah input kamar, ubah “Penyewa” lewat dropdown. Jika salah total, hapus lalu input ulang.
+      <div class="mt-4 p-4 bg-slate-800/30 rounded-xl border border-white/5">
+        <p class="text-[#8aa0c6] text-xs italic">
+          * Jika salah input kamar, ubah “Penyewa” lewat dropdown. Jika salah total, hapus lalu input ulang.
+        </p>
       </div>
     </div>
-  </div>
+  </main>
 
   <script type="module" src="./js/history.js"></script>
 </body>
