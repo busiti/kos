@@ -1,159 +1,133 @@
 <!doctype html>
 <html lang="id">
-
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kos Bu Siti - Rekap</title>
-  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="data:,">
-  <style>
-    .table-grid td {
-      text-align: center;
-    }
-  </style>
+  <script type="module">
+    import { auth } from "./js/firebase.js"; // Pastikan path ke firebase.js benar
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+    // Cek status login sebelum halaman ditampilkan sepenuhnya
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // Jika tidak login, langsung lempar ke halaman login
+        window.location.href = "login.html";
+      }
+    });
+  </script>
 </head>
-
-<body>
-  <div class="topbar">
-    <div class="nav">
-      <div class="brand">🏠 Kos Bu Siti</div>
-      <div class="menu">
-        <a href="index.html">Dashboard</a>
-        <a href="payments.html">Pembayaran</a>
-        <a href="rekap.html">Rekap</a>
-        <a href="history.html">Riwayat</a>
+<body class="bg-[#0b1220] text-[#e8f0ff] font-sans min-h-screen pb-10">
+  <nav class="sticky top-0 z-50 bg-[#0b1220]/90 backdrop-blur-md border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+      <div class="font-bold text-lg text-emerald-400">🏠 Kos Bu Siti</div>
+      <div class="flex flex-wrap gap-2">
+        <a href="index.html" class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm hover:bg-white/10 transition">Dashboard</a>
+        <a href="payments.html" class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm hover:bg-white/10 transition">Pembayaran</a>
+        <a href="rekap.html" class="px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-sm">Rekap</a>
+        <a href="history.html" class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm hover:bg-white/10 transition">Riwayat</a>
       </div>
     </div>
-  </div>
+  </nav>
 
-  <div class="container grid" style="gap:14px">
-    <div class="card">
-      <div class="row">
-        <div>
-          <h2>Manajemen Penyewa</h2>
-          <div class="muted">
-            Tambah penyewa baru dan kelola data penyewa.
-            Rekap pembayaran tahunan ditampilkan di bawah.
-          </div>
+  <main class="max-w-6xl mx-auto p-4 space-y-6">
+    <div class="bg-[#111a2e] border border-white/10 rounded-2xl p-6 flex flex-wrap justify-between items-center gap-4">
+      <div>
+        <h2 class="text-2xl font-bold">Manajemen Penyewa</h2>
+        <p class="text-[#8aa0c6] text-sm italic">Tambah penyewa baru dan kelola data penyewa.</p>
+      </div>
+      <button id="btnReload" class="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition text-sm">Muat Ulang</button>
+    </div>
+
+    <div class="bg-[#111a2e] border border-white/10 rounded-2xl p-6 shadow-lg">
+      <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span> Tambah Penyewa Baru</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <label class="text-[11px] text-[#8aa0c6] uppercase font-bold">Nama</label>
+          <input id="addNama" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:ring-1 focus:ring-emerald-500"/>
         </div>
-        <div class="spacer"></div>
-        <button id="btnReload" class="ghost">Muat Ulang</button>
+        <div class="space-y-1">
+          <label class="text-[11px] text-[#8aa0c6] uppercase font-bold">No HP</label>
+          <input id="addHp" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:ring-1 focus:ring-emerald-500"/>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[11px] text-[#8aa0c6] uppercase font-bold">Pilih Unit</label>
+          <select id="addUnit" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:ring-1 focus:ring-emerald-500"></select>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[11px] text-[#8aa0c6] uppercase font-bold">Tanggal Mulai</label>
+          <input id="addMulai" type="date" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:ring-1 focus:ring-emerald-500"/>
+        </div>
+      </div>
+      <div class="mt-6 pt-4 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-[#8aa0c6] text-xs italic" id="addInfo">—</div>
+        <button id="btnAddTenant" class="w-full md:w-auto bg-emerald-800 hover:bg-emerald-700 text-white px-8 py-2 rounded-xl font-bold transition shadow-lg">Tambah Penyewa</button>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Tambah Penyewa Baru</h3>
-      <div class="muted">Satu kamar hanya boleh memiliki satu penyewa aktif.</div>
-      <hr />
-      <div class="grid grid-2">
-        <div class="field">
-          <label>Nama</label>
-          <input id="addNama" />
-        </div>
-        <div class="field">
-          <label>No HP</label>
-          <input id="addHp" />
-        </div>
-        <div class="field">
-          <label>Pilih Unit</label>
-          <select id="addUnit"></select>
-        </div>
-        <div class="field">
-          <label>Tanggal Mulai</label>
-          <input id="addMulai" type="date" />
-        </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-800/40 p-5 rounded-2xl border border-white/5 text-center">
+        <div class="text-[#8aa0c6] text-[10px] uppercase font-bold mb-1">Total Kamar</div>
+        <div class="text-2xl font-bold" id="sumTotal">0</div>
       </div>
-      <hr />
-      <div class="row">
-        <div class="muted" id="addInfo">—</div>
-        <div class="spacer"></div>
-        <button id="btnAddTenant" class="ok">Tambah Penyewa</button>
+      <div class="bg-emerald-900/30 p-5 rounded-2xl border border-emerald-500/20 text-center">
+        <div class="text-emerald-400 text-[10px] uppercase font-bold mb-1">Sudah Bayar</div>
+        <div class="text-2xl font-bold text-emerald-100" id="sumPaid">0</div>
+      </div>
+      <div class="bg-red-900/30 p-5 rounded-2xl border border-red-500/20 text-center">
+        <div class="text-red-400 text-[10px] uppercase font-bold mb-1">Belum Bayar</div>
+        <div class="text-2xl font-bold text-red-100" id="sumUnpaid">0</div>
+      </div>
+      <div class="bg-slate-800/40 p-5 rounded-2xl border border-white/5 text-center">
+        <div class="text-[#8aa0c6] text-[10px] uppercase font-bold mb-1 text-center">Pemasukan Bulan Ini</div>
+        <div class="text-xl font-bold truncate">Rp <span id="sumIncome">0</span></div>
       </div>
     </div>
-    <div class="card">
-      <h3>Rekap Pembayaran Tahun Berjalan</h3>
-      <div class="muted">
-        Hijau = sudah dibayar
-        Merah = sudah lewat jatuh tempo
-        Kosong = belum jatuh tempo
-      </div>
-    </div>
-    <div class="card">
-  <h3>Ringkasan Bulan Ini</h3>
-  <div class="summary-grid">
-    <div class="summary-box">
-      <div class="label">Total Kamar</div>
-      <div class="value" id="sumTotal">0</div>
-    </div>
 
-    <div class="summary-box green">
-      <div class="label">Sudah Bayar</div>
-      <div class="value" id="sumPaid">0</div>
-    </div>
-
-    <div class="summary-box red">
-      <div class="label">Belum Bayar</div>
-      <div class="value" id="sumUnpaid">0</div>
-    </div>
-
-    <div class="summary-box">
-      <div class="label">Pemasukan Bulan Ini</div>
-      <div class="value">Rp <span id="sumIncome">0</span></div>
-    </div>
-  </div>
-</div>
-    <div class="card">
-      <div style="overflow:auto">
-        <div class="table-wrapper">
-        <table class="table table-grid" id="tblRekap">
-          <thead id="thead"></thead>
-          <tbody id="tbody"></tbody>
+    <div class="bg-[#111a2e] border border-white/10 rounded-2xl p-6 shadow-xl overflow-hidden">
+      <h3 class="text-lg font-bold mb-4 italic text-[#8aa0c6]">Rekap Pembayaran Tahun Berjalan</h3>
+      <div class="overflow-x-auto rounded-xl border border-white/10">
+        <table class="w-full text-xs text-center border-collapse" id="tblRekap">
+          <thead id="thead" class="bg-white/5"></thead>
+          <tbody id="tbody" class="divide-y divide-white/5"></tbody>
         </table>
-        </div>
-      </div>
-      <div class="muted" style="margin-top:10px">
-        Keterangan tunggakan dihitung dari <b>periode_selesai terakhir</b>. Tidak menampilkan “0”.
       </div>
     </div>
-  </div>
+  </main>
 
-  <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal">
-      <div class="row">
-        <h3 style="margin:0">Edit Penyewa</h3>
-        <div class="spacer"></div>
-        <button class="ghost" id="btnClose">Tutup</button>
+  <div id="modalBackdrop" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-[#111a2e] border border-white/20 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl transform transition-all">
+      <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+        <h3 class="text-xl font-bold">Edit Penyewa</h3>
+        <button id="btnClose" class="text-[#8aa0c6] hover:text-white transition text-2xl">&times;</button>
       </div>
-      <hr />
-      <div class="grid grid-2">
-        <div class="field">
-          <label>Nama</label>
-          <input id="mNama" />
+      <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="space-y-1">
+          <label class="text-[11px] text-[#8aa0c6] uppercase font-bold">Nama</label>
+          <input id="mNama" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:ring-1 focus:ring-emerald-500"/>
         </div>
-        <div class="field">
-          <label>No HP</label>
-          <input id="mHp" />
+        <div class="space-y-1">
+          <label class="text-[11px] text-[#8aa0c6] uppercase font-bold">No HP</label>
+          <input id="mHp" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:ring-1 focus:ring-emerald-500"/>
         </div>
-        <div class="field">
-          <label>Unit</label>
-          <select id="mUnit"></select>
+        <div class="space-y-1">
+          <label class="text-[11px] text-[#8aa0c6] uppercase font-bold">Unit</label>
+          <select id="mUnit" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:ring-1 focus:ring-emerald-500"></select>
         </div>
-        <div class="field">
-          <label>Tanggal Mulai</label>
-          <input id="mMulai" type="date" />
+        <div class="space-y-1">
+          <label class="text-[11px] text-[#8aa0c6] uppercase font-bold">Tanggal Mulai</label>
+          <input id="mMulai" type="date" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:ring-1 focus:ring-emerald-500"/>
         </div>
       </div>
-      <hr />
-      <div class="row">
-        <div class="muted" id="mInfo">—</div>
-        <div class="spacer"></div>
-        <button id="btnSaveTenant" class="ok">Simpan</button>
+      <div class="p-6 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-[#8aa0c6] text-xs italic" id="mInfo">—</div>
+        <button id="btnSaveTenant" class="w-full md:w-auto bg-emerald-800 hover:bg-emerald-700 text-white px-10 py-3 rounded-2xl font-bold shadow-lg transition">Simpan</button>
       </div>
     </div>
   </div>
 
   <script type="module" src="./js/rekap.js"></script>
 </body>
-
 </html>
