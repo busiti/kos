@@ -25,16 +25,12 @@ function waThanks({tenantName, unitName}){
   return `${title}\n\nTerima kasih, Bapak/Ibu *${tenantName}* ( ${unitName} ).\nPembayaran sudah kami catat.\n\n${sign}`;
 }
 
-// cari bulan tertua yang belum tertutup (berdasarkan coverage)
 function findOldestUnpaidStart(tanggalMulai, mergedRanges){
   let cursor = startOfDay(tanggalMulai);
-
-  // safety 240 bulan
   for (let i=0;i<240;i++){
     const s = cursor;
     const e = endOfMonthlyPeriod(s);
-    const covered = isRangeCovered(s, e, mergedRanges);
-    if (!covered) return s;
+    if (!isRangeCovered(s, e, mergedRanges)) return s;
     cursor = addMonthsKeepDay(cursor, 1);
   }
   return startOfDay(tanggalMulai);
@@ -56,13 +52,10 @@ async function build(){
     return `<option value="${t.id}">${t.nama} — ${u?.nama_unit || "Unit?"}</option>`;
   }).join("");
 
-  // default pay date today
   payDate.valueAsDate = new Date();
 
   async function refreshPreview(){
     after.style.display = "none";
-    after.innerHTML = "";
-
     const tenantId = tenantSelect.value;
     const months = Math.max(1, parseInt(monthsEl.value||"1",10));
     const t = tenants.find(x=>x.id===tenantId);
@@ -70,20 +63,19 @@ async function build(){
 
     const payments = await getPaymentsByTenant(tenantId);
     const merged = paymentsToRanges(payments);
-    const startDate = toDate(t.tanggal_mulai);
-
-    const oldest = findOldestUnpaidStart(startDate, merged);
+    const oldest = findOldestUnpaidStart(toDate(t.tanggal_mulai), merged);
     const end = endOfNMonthsPeriod(oldest, months);
 
     preview.value = `${fmtDMY(oldest)} s/d ${fmtDMY(end)} (${months} bln)`;
-    hint.innerHTML = `Akan menutup tunggakan tertua mulai <b>${fmtDMY(oldest)}</b>. Total: <b>Rp ${formatRupiah(months*MONTHLY_FEE)}</b> (${u?.nama_unit || ""})`;
+    hint.innerHTML = `Mencatat tunggakan mulai <b class="text-white">${fmtDMY(oldest)}</b>. Total: <b class="text-emerald-400 text-lg">Rp ${formatRupiah(months*MONTHLY_FEE)}</b>`;
   }
 
-  tenantSelect.addEventListener("change", refreshPreview);
-  monthsEl.addEventListener("input", refreshPreview);
-  payDate.addEventListener("change", refreshPreview);
+  [tenantSelect, monthsEl, payDate].forEach(el => el.addEventListener("change", refreshPreview));
 
-  document.getElementById("btnSave").addEventListener("click", async ()=>{
+  document.getElementById("btnSave").onclick = async ()=>{
+    const btn = document.getElementById("btnSave");
+    btn.disabled = true; btn.innerText = "Menyimpan...";
+
     const tenantId = tenantSelect.value;
     const months = Math.max(1, parseInt(monthsEl.value||"1",10));
     const payD = payDate.value ? new Date(payDate.value + "T00:00:00") : new Date();
@@ -91,35 +83,31 @@ async function build(){
     const t = tenants.find(x=>x.id===tenantId);
     const u = unitById.get(t.unit_id);
 
-    // reload fresh
     const payments = await getPaymentsByTenant(tenantId);
     const merged = paymentsToRanges(payments);
     const startDate = toDate(t.tanggal_mulai);
 
-    const periodeMulai = findOldestUnpaidStart(startDate, merged);
-    const periodeSelesai = endOfNMonthsPeriod(periodeMulai, months);
+    const pMulai = findOldestUnpaidStart(startDate, merged);
+    const pSelesai = endOfNMonthsPeriod(pMulai, months);
     const jumlah = months * MONTHLY_FEE;
 
-    await addPayment({
-      tenant_id: tenantId,
-      periode_mulai: periodeMulai,
-      periode_selesai: periodeSelesai,
-      tanggal_bayar: payD,
-      jumlah
-    });
-
+    await addPayment({ tenant_id: tenantId, periode_mulai: pMulai, periode_selesai: pSelesai, tanggal_bayar: payD, jumlah });
+    
     await refreshPreview();
-
     const thanksText = waThanks({ tenantName: t.nama, unitName: u?.nama_unit || "" });
 
     after.style.display = "block";
+    after.className = "mt-6 p-6 bg-emerald-900/20 border border-emerald-500/20 rounded-2xl text-center shadow-inner animate-pulse";
     after.innerHTML = `
-      <b>✅ Pembayaran tersimpan.</b><br/>
-      Periode: <b>${fmtDMY(periodeMulai)}</b> s/d <b>${fmtDMY(periodeSelesai)}</b><br/>
-      Jumlah: <b>Rp ${formatRupiah(jumlah)}</b><br/><br/>
-      <a class="badge" style="padding:7px 10px" href="${waLink(t.no_hp, thanksText)}" target="_blank">Kirim WA: Terima kasih pembayaran</a>
+      <div class="text-emerald-400 font-bold mb-2">✅ PEMBAYARAN BERHASIL DISIMPAN</div>
+      <div class="text-sm text-[#8aa0c6] mb-4">Periode: <b>${fmtDMY(pMulai)}</b> - <b>${fmtDMY(pSelesai)}</b> (${months} bln)</div>
+      <a class="inline-block bg-emerald-700 hover:bg-emerald-600 text-white px-6 py-2 rounded-xl text-sm font-bold transition" href="${waLink(t.no_hp, thanksText)}" target="_blank">
+        Kirim WA Bukti Bayar
+      </a>
     `;
-  });
+
+    btn.disabled = false; btn.innerText = "Simpan Pembayaran";
+  };
 
   await refreshPreview();
 }
