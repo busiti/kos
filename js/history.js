@@ -6,7 +6,7 @@ function showNotif(msg){
   n.textContent = msg;
   n.style.display = "block";
   clearTimeout(showNotif._t);
-  showNotif._t = setTimeout(()=>{ n.style.display = "none"; }, 2500);
+  showNotif._t = setTimeout(()=>{ n.style.display = "none"; }, 3000);
 }
 
 function fmtDMY(d){
@@ -25,7 +25,7 @@ async function build(){
   tbody.innerHTML = "";
 
   if (!payments.length){
-    tbody.innerHTML = `<tr><td colspan="5" class="muted">Belum ada transaksi.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-[#8aa0c6] italic">Belum ada transaksi tersimpan.</td></tr>`;
     return;
   }
 
@@ -36,45 +36,43 @@ async function build(){
     const pe = toDate(p.periode_selesai);
 
     const tr = document.createElement("tr");
+    tr.className = "hover:bg-white/5 transition";
     tr.innerHTML = `
-      <td>${bayar ? fmtDMY(bayar) : "—"}</td>
-      <td>
-        <select class="tenantSelect" data-id="${p.id}">
+      <td class="p-4 border-b border-white/5 font-mono text-xs">${bayar ? fmtDMY(bayar) : "—"}</td>
+      <td class="p-4 border-b border-white/5">
+        <select class="tenantSelect bg-white/5 border border-white/10 rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-emerald-500" data-id="${p.id}">
           ${tenants.map(x=>{
             const sel = x.id === p.tenant_id ? "selected" : "";
             return `<option value="${x.id}" ${sel}>${x.nama}</option>`;
           }).join("")}
         </select>
-        <div class="muted" style="margin-top:4px">${t?.no_hp || ""}</div>
+        <div class="text-[10px] text-[#8aa0c6] mt-1 italic">${t?.no_hp || ""}</div>
       </td>
-      <td>${ps ? fmtDMY(ps) : "—"} - ${pe ? fmtDMY(pe) : "—"}</td>
-      <td>Rp ${formatRupiah(p.jumlah || 0)}</td>
-      <td>
-        <button class="small" data-del="${p.id}">Hapus</button>
+      <td class="p-4 border-b border-white/5 text-xs text-[#8aa0c6]">${ps ? fmtDMY(ps) : "—"} <br/> s/d <br/> ${pe ? fmtDMY(pe) : "—"}</td>
+      <td class="p-4 border-b border-white/5 font-bold text-emerald-400">Rp ${formatRupiah(p.jumlah || 0)}</td>
+      <td class="p-4 border-b border-white/5">
+        <button class="bg-red-900/20 text-red-400 border border-red-500/20 px-4 py-1 rounded-lg text-[10px] font-bold hover:bg-red-500 hover:text-white transition" data-del="${p.id}">Hapus</button>
       </td>
     `;
     tbody.appendChild(tr);
   }
 
-  // bind delete
   document.querySelectorAll("button[data-del]").forEach(btn=>{
-    btn.addEventListener("click", async ()=>{
+    btn.onclick = async ()=>{
       const id = btn.getAttribute("data-del");
-      if (!confirm("Hapus pembayaran ini?")) return;
-
+      if (!confirm("Hapus data pembayaran ini selamanya?")) return;
       await deletePayment(id);
       btn.closest("tr").remove();
-      showNotif("✅ Pembayaran berhasil dihapus");
-    });
+      showNotif("✅ Berhasil: Transaksi telah dihapus.");
+    };
   });
 
-  // bind change tenant
   document.querySelectorAll("select.tenantSelect").forEach(sel=>{
-    sel.addEventListener("change", async ()=>{
+    sel.onchange = async ()=>{
       const id = sel.getAttribute("data-id");
       await updatePaymentTenant(id, sel.value);
-      showNotif("✅ Penyewa pembayaran diperbarui");
-    });
+      showNotif("✅ Berhasil: Data penyewa diperbarui.");
+    };
   });
 }
 
