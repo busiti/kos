@@ -1,10 +1,6 @@
 import { MONTH_NAMES } from "./constants.js";
 import { getUnits, getTenants, getPaymentsByTenant, paymentsToRanges, updateTenant, addTenant } from "./repo.js";
-import {
-  toDate, startOfDay, endOfMonthlyPeriod, isRangeCovered,
-  addDays, maxEndDate, calcLate, toISODate, periodStartForYearMonth,
-  formatRupiah
-} from "./utils.js";
+import { toDate, startOfDay, endOfMonthlyPeriod, isRangeCovered, addDays, maxEndDate, calcLate, toISODate, periodStartForYearMonth, formatRupiah } from "./utils.js";
 
 function fmtDMY(d){
   const x = new Date(d); x.setHours(0,0,0,0);
@@ -18,249 +14,165 @@ function lateText(nextDue, today){
   const { months, days } = calcLate(nextDue, today);
   if (months === 0 && days === 0) return "";
   const parts = [];
-  if (months > 0) parts.push(`${months} bulan`);
-  if (days > 0) parts.push(`${days} hari`);
+  if (months > 0) parts.push(`${months} bln`);
+  if (days > 0) parts.push(`${days} hr`);
   return `Telat ${parts.join(" ")}`;
 }
 
-let state = {
-  units: [],
-  tenants: [],
-  unitById: new Map(),
-  paymentsCache: new Map(),
-};
+let state = { units: [], tenants: [], unitById: new Map(), paymentsCache: new Map() };
 
 async function getMergedRanges(tenantId){
   if (state.paymentsCache.has(tenantId)) return state.paymentsCache.get(tenantId);
-  const payments = await getPaymentsByTenant(tenantId);
-  const merged = paymentsToRanges(payments);
-  state.paymentsCache.set(tenantId, merged);
-  return merged;
+  const p = await getPaymentsByTenant(tenantId);
+  const m = paymentsToRanges(p);
+  state.paymentsCache.set(tenantId, m);
+  return m;
 }
 
-/* =========================
-   RINGKASAN BULAN INI
-========================= */
 async function buildSummary(tenants){
-  const today = new Date();
-  const year = today.getFullYear();
-  const month0 = today.getMonth();
-
-  let total = tenants.length;
-  let paid = 0;
-  let income = 0;
+  const today = new Date(); const year = today.getFullYear(); const month0 = today.getMonth();
+  let paid = 0; let income = 0;
 
   for (const t of tenants){
     const startDate = toDate(t.tanggal_mulai);
     const merged = await getMergedRanges(t.id);
-
     const pStart = periodStartForYearMonth(startDate, year, month0);
     const pEnd = endOfMonthlyPeriod(pStart);
-
-    const covered = isRangeCovered(pStart, pEnd, merged);
-
-    if (covered){
+    if (isRangeCovered(pStart, pEnd, merged)){
       paid++;
-
       const payments = await getPaymentsByTenant(t.id);
-      const payThisMonth = payments.find(p =>
-        toDate(p.periode_mulai).getTime() === pStart.getTime()
-      );
-
-      if (payThisMonth){
-        income += payThisMonth.jumlah || 0;
-      }
+      const row = payments.find(p => toDate(p.periode_mulai).getTime() === pStart.getTime());
+      if (row) income += row.jumlah || 0;
     }
   }
 
-  const unpaid = total - paid;
-
-  document.getElementById("sumTotal").innerText = total;
+  document.getElementById("sumTotal").innerText = tenants.length;
   document.getElementById("sumPaid").innerText = paid;
-  document.getElementById("sumUnpaid").innerText = unpaid;
+  document.getElementById("sumUnpaid").innerText = tenants.length - paid;
   document.getElementById("sumIncome").innerText = formatRupiah(income);
 }
 
-/* =========================
-   BUILD TABEL REKAP
-========================= */
 async function build(){
   state.paymentsCache.clear();
-
   const [units, tenants] = await Promise.all([getUnits(), getTenants()]);
-  state.units = units;
-  state.tenants = tenants;
-  state.unitById = new Map(units.map(u=>[u.id,u]));
+  state.units = units; state.tenants = tenants; state.unitById = new Map(units.map(u=>[u.id,u]));
 
   const year = new Date().getFullYear();
   const today = startOfDay(new Date());
 
-  // dropdown unit kosong (tambah penyewa)
-  const addUnit = document.getElementById("addUnit");
-  const usedUnitIds = new Set(tenants.map(t=>t.unit_id));
-  const availableUnits = units.filter(u => !usedUnitIds.has(u.id));
+  // Dropdown unit kosong
+  const usedIds = new Set(tenants.map(t=>t.unit_id));
+  const avail = units.filter(u => !usedIds.has(u.id));
+  document.getElementById("addUnit").innerHTML = avail.length ? avail.map(u=>`<option value="${u.id}">${u.nama_unit}</option>`).join("") : `<option value="">Penuh</option>`;
 
-  addUnit.innerHTML = availableUnits.length
-    ? availableUnits.map(u=>`<option value="${u.id}">${u.nama_unit}</option>`).join("")
-    : `<option value="">Semua unit terisi</option>`;
-
-  // header tabel
-  const thead = document.getElementById("thead");
-  thead.innerHTML = `
-    <tr>
-      <th>Penyewa</th>
-      <th>Unit</th>
-      ${MONTH_NAMES.map(m=>`<th>${m}</th>`).join("")}
-      <th>Tunggakan</th>
-      <th>Aksi</th>
+  // Header
+  document.getElementById("thead").innerHTML = `
+    <tr class="bg-white/5 text-[#8aa0c6] text-[10px] uppercase font-bold tracking-widest">
+      <th class="p-4 border border-white/10">Penyewa</th>
+      <th class="p-4 border border-white/10">Unit</th>
+      ${MONTH_NAMES.map(m=>`<th class="p-2 border border-white/10">${m}</th>`).join("")}
+      <th class="p-4 border border-white/10">Next Due</th>
+      <th class="p-4 border border-white/10">Aksi</th>
     </tr>
   `;
 
-  const tbody = document.getElementById("tbody");
-  tbody.innerHTML = `<tr><td colspan="16" class="muted">Memuat...</td></tr>`;
-
   const rows = [];
-
   for (const t of tenants){
     const u = state.unitById.get(t.unit_id);
-    const startDate = toDate(t.tanggal_mulai);
     const merged = await getMergedRanges(t.id);
-
     const lastEnd = maxEndDate(merged);
-    const nextDue = lastEnd ? addDays(lastEnd, 1) : startDate;
+    const nextDue = lastEnd ? addDays(lastEnd, 1) : toDate(t.tanggal_mulai);
     const late = lateText(nextDue, today);
 
     const cells = [];
+    for (let m=0; m<12; m++){
+      const pS = periodStartForYearMonth(toDate(t.tanggal_mulai), year, m);
+      const covered = isRangeCovered(pS, endOfMonthlyPeriod(pS), merged);
+      const isPast = today.getTime() > pS.getTime();
+      
+      let cls = "bg-white/5"; 
+      if (covered) cls = "bg-emerald-500/40"; 
+      else if (isPast) cls = "bg-red-500/30";
 
-    for (let m=0;m<12;m++){
-      const periodStart = periodStartForYearMonth(startDate, year, m);
-      const periodEnd = endOfMonthlyPeriod(periodStart);
-
-      const covered = isRangeCovered(periodStart, periodEnd, merged);
-
-      const isPastDue = today.getTime() > startOfDay(periodStart).getTime();
-
-      let cls = "cell-empty";
-      if (covered) cls = "cell-ok";
-      else if (isPastDue) cls = "cell-bad";
-
-      cells.push(`<td class="${cls}"></td>`);
+      cells.push(`<td class="p-1 border border-white/10"><div class="w-full h-4 rounded-sm ${cls}"></div></td>`);
     }
 
     rows.push(`
-      <tr>
-        <td style="text-align:left">
-          <b>${t.nama}</b><br/>
-          <span class="muted">${t.no_hp || "—"}</span>
-        </td>
-        <td style="text-align:left">${u?.nama_unit || "—"}</td>
+      <tr class="hover:bg-white/5 transition">
+        <td class="p-3 border border-white/10 text-left font-bold text-xs">${t.nama}<br/><span class="text-[10px] text-[#8aa0c6] font-normal">${t.no_hp || "—"}</span></td>
+        <td class="p-3 border border-white/10 text-xs font-mono">${u?.nama_unit || "—"}</td>
         ${cells.join("")}
-        <td style="text-align:left">
-          ${late ? `<span class="badge">${late}</span><br/>` : ""}
-          <span class="muted">Next due: ${fmtDMY(nextDue)}</span>
+        <td class="p-3 border border-white/10 text-[10px] text-left">
+          ${late ? `<span class="text-red-400 font-bold">${late}</span><br/>` : ""}
+          <span class="text-[#8aa0c6] font-mono">${fmtDMY(nextDue)}</span>
         </td>
-        <td>
-          <button class="small" data-edit="${t.id}">Edit</button>
+        <td class="p-3 border border-white/10">
+          <button class="bg-white/5 border border-white/10 px-3 py-1 rounded text-[10px] font-bold hover:bg-emerald-500/20 transition" data-edit="${t.id}">Edit</button>
         </td>
       </tr>
     `);
   }
 
-  tbody.innerHTML = rows.join("") || `<tr><td colspan="16" class="muted">Tidak ada data.</td></tr>`;
-
-  // jalankan ringkasan
+  document.getElementById("tbody").innerHTML = rows.join("") || `<tr><td colspan="16" class="p-6 text-[#8aa0c6] italic text-center">Data kosong.</td></tr>`;
   await buildSummary(tenants);
 
-  // bind edit
-  document.querySelectorAll("button[data-edit]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const id = btn.getAttribute("data-edit");
-      openEditModal(id);
-    });
-  });
+  document.querySelectorAll("button[data-edit]").forEach(btn => btn.onclick = () => openEditModal(btn.getAttribute("data-edit")));
 }
 
-/* =========================
-   MODAL EDIT TENANT
-========================= */
-
+/* MODAL LOGIC */
 const backdrop = document.getElementById("modalBackdrop");
-document.getElementById("btnClose").addEventListener("click", ()=> backdrop.classList.remove("show"));
-backdrop.addEventListener("click", (e)=>{ if (e.target === backdrop) backdrop.classList.remove("show"); });
+const closeModal = () => { backdrop.classList.add("hidden"); backdrop.classList.remove("flex"); };
+document.getElementById("btnClose").onclick = closeModal;
+backdrop.onclick = (e) => { if(e.target === backdrop) closeModal(); };
 
-let editingTenantId = null;
-
-function openEditModal(tenantId){
-  editingTenantId = tenantId;
-  const t = state.tenants.find(x=>x.id===tenantId);
-
-  const mUnit = document.getElementById("mUnit");
-  const usedUnitIds = new Set(state.tenants.filter(x=>x.id!==tenantId).map(x=>x.unit_id));
-
-  mUnit.innerHTML = state.units.map(u=>{
-    const disabled = usedUnitIds.has(u.id) ? "disabled" : "";
-    const selected = (u.id === t.unit_id) ? "selected" : "";
-    return `<option value="${u.id}" ${selected} ${disabled}>${u.nama_unit}${disabled ? " (terisi)" : ""}</option>`;
+let editingId = null;
+function openEditModal(id){
+  editingId = id;
+  const t = state.tenants.find(x=>x.id===id);
+  const used = new Set(state.tenants.filter(x=>x.id!==id).map(x=>x.unit_id));
+  
+  document.getElementById("mUnit").innerHTML = state.units.map(u => {
+    const dis = used.has(u.id) ? "disabled" : "";
+    const sel = u.id === t.unit_id ? "selected" : "";
+    return `<option value="${u.id}" ${sel} ${dis}>${u.nama_unit} ${dis ? "(isi)" : ""}</option>`;
   }).join("");
 
-  document.getElementById("mNama").value = t.nama || "";
-  document.getElementById("mHp").value = t.no_hp || "";
+  document.getElementById("mNama").value = t.nama;
+  document.getElementById("mHp").value = t.no_hp;
   document.getElementById("mMulai").value = toISODate(toDate(t.tanggal_mulai));
-  document.getElementById("mInfo").textContent = `ID: ${tenantId}`;
-
-  backdrop.classList.add("show");
+  document.getElementById("mInfo").textContent = `UID: ${id}`;
+  
+  backdrop.classList.remove("hidden");
+  backdrop.classList.add("flex");
 }
 
-document.getElementById("btnSaveTenant").addEventListener("click", async ()=>{
-  if (!editingTenantId) return;
-
-  const nama = document.getElementById("mNama").value.trim();
-  const no_hp = document.getElementById("mHp").value.trim();
-  const unit_id = document.getElementById("mUnit").value;
-  const tanggal_mulai = document.getElementById("mMulai").value;
-
-  if (!nama || !unit_id || !tanggal_mulai){
-    alert("Nama, Unit, dan Tanggal Mulai wajib diisi.");
-    return;
-  }
-
-  await updateTenant(editingTenantId, { nama, no_hp, unit_id, tanggal_mulai });
-  backdrop.classList.remove("show");
+document.getElementById("btnSaveTenant").onclick = async () => {
+  const payload = { 
+    nama: document.getElementById("mNama").value.trim(), 
+    no_hp: document.getElementById("mHp").value.trim(), 
+    unit_id: document.getElementById("mUnit").value, 
+    tanggal_mulai: document.getElementById("mMulai").value 
+  };
+  if(!payload.nama || !payload.unit_id || !payload.tanggal_mulai) return alert("Data wajib diisi!");
+  await updateTenant(editingId, payload);
+  closeModal();
   await build();
-});
+};
 
-/* =========================
-   TAMBAH TENANT
-========================= */
-
-document.getElementById("btnAddTenant").addEventListener("click", async ()=>{
-  const nama = document.getElementById("addNama").value.trim();
-  const no_hp = document.getElementById("addHp").value.trim();
-  const unit_id = document.getElementById("addUnit").value;
-  const tanggal_mulai = document.getElementById("addMulai").value;
-  const info = document.getElementById("addInfo");
-
-  if (!nama || !unit_id || !tanggal_mulai){
-    alert("Nama, Unit, dan Tanggal Mulai wajib diisi.");
-    return;
-  }
-
-  const usedUnitIds = new Set(state.tenants.map(t=>t.unit_id));
-  if (usedUnitIds.has(unit_id)){
-    alert("Unit ini sudah terisi. Pilih unit lain.");
-    return;
-  }
-
-  await addTenant({ nama, no_hp, unit_id, tanggal_mulai });
-
-  info.innerHTML = `<b>✅ Penyewa berhasil ditambahkan.</b>`;
-  document.getElementById("addNama").value = "";
+document.getElementById("btnAddTenant").onclick = async () => {
+  const payload = { 
+    nama: document.getElementById("addNama").value.trim(), 
+    no_hp: document.getElementById("addHp").value.trim(), 
+    unit_id: document.getElementById("addUnit").value, 
+    tanggal_mulai: document.getElementById("addMulai").value 
+  };
+  if(!payload.nama || !payload.unit_id || !payload.tanggal_mulai) return alert("Data wajib diisi!");
+  await addTenant(payload);
+  document.getElementById("addNama").value = ""; 
   document.getElementById("addHp").value = "";
   document.getElementById("addMulai").value = "";
-
   await build();
-});
+};
 
-document.getElementById("btnReload").addEventListener("click", build);
-
+document.getElementById("btnReload").onclick = build;
 build();
