@@ -392,3 +392,15 @@ button.ok{
   }
 
 }
+.table-wrapper {
+  overflow-x: auto;
+}
+
+#tblRekap .sticky-col {
+  position: sticky;
+  left: 0;
+  background: var(--card); /* Sesuai warna kartu kamu */
+  z-index: 10;
+  border-right: 2px solid var(--line);
+  min-width: 100px;
+}
